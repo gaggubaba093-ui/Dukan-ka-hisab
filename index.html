@@ -1,0 +1,394 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARSLAN SHOP HISAB</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+ margin:0;
+ background:#070b16;
+ color:white;
+ font-family:Arial,sans-serif;
+}
+
+header{
+ background:#111827;
+ padding:22px;
+ text-align:center;
+ border-bottom:1px solid #333;
+}
+
+.card{
+ background:#151c2c;
+ margin:15px;
+ padding:18px;
+ border-radius:15px;
+ border:1px solid #30394b;
+}
+
+h2{color:#60a5fa}
+
+button{
+ width:100%;
+ padding:14px;
+ margin:6px 0;
+ border:0;
+ border-radius:10px;
+ background:#2563eb;
+ color:white;
+ font-size:16px;
+ font-weight:bold;
+}
+
+.voice{background:#16a34a}
+.stop{background:#dc2626}
+
+input,select{
+ width:100%;
+ padding:13px;
+ margin:7px 0;
+ background:#252f42;
+ color:white;
+ border:1px solid #475569;
+ border-radius:9px;
+}
+
+.stats{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px;
+}
+
+.stat{
+ background:#202c40;
+ padding:14px;
+ border-radius:10px;
+}
+
+.stat b{
+ display:block;
+ font-size:22px;
+ color:#4ade80;
+ margin-top:8px;
+}
+
+.entry{
+ background:#202c40;
+ padding:13px;
+ margin:10px 0;
+ border-radius:10px;
+ border:1px solid #38465c;
+}
+
+small{color:#aab5c8}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🧾 ARSLAN SHOP HISAB</h1>
+<p>Voice Accounting System</p>
+</header>
+
+<div class="card">
+<h2>📊 Daily Dashboard</h2>
+
+<div class="stats">
+<div class="stat">Total Sale<b id="sales">₹0</b></div>
+<div class="stat">Total Pieces<b id="pieces">0</b></div>
+<div class="stat">Bad Pieces<b id="bad">0</b></div>
+<div class="stat">Cash<b id="cash">₹0</b></div>
+<div class="stat">Online<b id="online">₹0</b></div>
+<div class="stat">Udhar<b id="credit">₹0</b></div>
+</div>
+</div>
+
+<div class="card">
+<h2>🎙️ Voice Recording</h2>
+<button class="voice" onclick="startVoice()">START RECORDING</button>
+<button class="stop" onclick="stopVoice()">STOP RECORDING</button>
+<p id="status">बोलकर अपना हिसाब रखें।</p>
+</div>
+
+<div class="card">
+<h2>✍️ Add New Sale</h2>
+
+<label>Pieces</label>
+<input id="qty" type="number" value="1">
+
+<label>Price Per Piece</label>
+<input id="price" type="number" value="150">
+
+<label>Sale Type</label>
+<select id="type">
+<option value="sale">Sale</option>
+<option value="bad">Bad / Waste</option>
+</select>
+
+<label>Payment Method</label>
+<select id="payment">
+<option value="cash">Cash</option>
+<option value="online">Online</option>
+<option value="credit">Udhar</option>
+</select>
+
+<input id="note" placeholder="Customer Name">
+
+<button onclick="addSale()">SAVE RECORD</button>
+</div>
+
+<div class="card">
+<h2>📅 Daily History</h2>
+<input type="date" id="date">
+
+<button onclick="render()">SHOW HISTORY</button>
+<button onclick="makePDF()">DOWNLOAD PDF</button>
+
+<div id="history"></div>
+</div>
+
+<div class="card">
+<h2>💾 Data Backup</h2>
+<button onclick="backup()">DOWNLOAD BACKUP</button>
+</div>
+
+<script>
+const KEY="ARSLAN_SHOP_DATA";
+
+let records=JSON.parse(localStorage.getItem(KEY)||"[]");
+
+const $=id=>document.getElementById(id);
+
+function today(){
+let d=new Date();
+return d.getFullYear()+"-"+
+String(d.getMonth()+1).padStart(2,"0")+"-"+
+String(d.getDate()).padStart(2,"0");
+}
+
+$("date").value=today();
+
+function save(){
+localStorage.setItem(KEY,JSON.stringify(records));
+render();
+}
+
+function money(n){
+return "₹"+Number(n||0).toLocaleString("en-IN");
+}
+
+function addSale(qty,price,type,payment,note){
+qty=Math.max(1,Number(qty)||1);
+price=Math.max(0,Number(price)||0);
+
+let total=type==="sale"?qty*price:0;
+
+records.unshift({
+id:Date.now()+Math.random(),
+date:today(),
+time:new Date().toLocaleTimeString(),
+qty,price,type,payment,note,total,
+cash:payment==="cash"?total:0,
+online:payment==="online"?total:0,
+credit:payment==="credit"?total:0
+});
+
+save();
+$("status").innerText="Record Saved Successfully!";
+}
+
+function addSaleManual(){
+addSale(
+$("qty").value,
+$("price").value,
+$("type").value,
+$("payment").value,
+$("note").value
+);
+}
+
+function addSale(){
+addSaleManual();
+}
+
+// Voice System
+const Speech=window.SpeechRecognition||
+window.webkitSpeechRecognition;
+
+let rec;
+
+function startVoice(){
+if(!Speech){
+alert("Chrome browser required");
+return;
+}
+
+rec=new Speech();
+rec.lang="hi-IN";
+
+rec.onresult=e=>{
+let t=e.results[0][0].transcript.toLowerCase();
+
+let numbers={
+"एक":1,"वन":1,"दो":2,"तीन":3,
+"चार":4,"पांच":5,"पाँच":5,
+"छह":6,"सात":7,"आठ":8,
+"नौ":9,"दस":10
+};
+
+let qty=1;
+let digit=t.match(/\d+/);
+
+if(digit)qty=Number(digit[0]);
+else{
+for(let word in numbers){
+if(t.includes(word)){
+qty=numbers[word];
+break;
+}
+}
+}
+
+let type=/खराब|बेकार|डैमेज/.test(t)?"bad":"sale";
+
+let payment="cash";
+
+if(/उधार|बाकी/.test(t))payment="credit";
+else if(/ऑनलाइन|यूपीआई|online/.test(t))
+payment="online";
+
+addSale(qty,150,type,payment,"Voice Entry");
+$("status").innerText="आपने कहा: "+t;
+};
+
+rec.onerror=()=>alert("Voice not recognized");
+rec.start();
+}
+
+function stopVoice(){
+if(rec)rec.stop();
+}
+
+// Dashboard and History
+function render(){
+let date=$("date").value||today();
+
+let daily=records.filter(r=>r.date===today());
+
+let total={
+sales:0,pieces:0,bad:0,
+cash:0,online:0,credit:0
+};
+
+daily.forEach(r=>{
+if(r.type==="bad"){
+total.bad+=r.qty;
+}else{
+total.sales+=r.total;
+total.pieces+=r.qty;
+total.cash+=r.cash;
+total.online+=r.online;
+total.credit+=r.credit;
+}
+});
+
+$("sales").innerText=money(total.sales);
+$("pieces").innerText=total.pieces;
+$("bad").innerText=total.bad;
+$("cash").innerText=money(total.cash);
+$("online").innerText=money(total.online);
+$("credit").innerText=money(total.credit);
+
+let list=records.filter(r=>r.date===date);
+
+$("history").innerHTML=list.map(r=>`
+<div class="entry">
+<b>${r.type==="bad"?"खराब पीस":"बिक्री"} - ${r.qty} पीस</b>
+<p>${money(r.total)}</p>
+<p>${r.payment}</p>
+<p>${r.date} | ${r.time}</p>
+<button onclick="deleteRecord('${r.id}')">DELETE</button>
+</div>
+`).join("")||"No History";
+}
+
+function deleteRecord(id){
+if(confirm("Delete this record?")){
+records=records.filter(r=>String(r.id)!==String(id));
+save();
+}
+}
+
+// PDF Report
+function makePDF(){
+let date=$("date").value||today();
+let list=records.filter(r=>r.date===date);
+
+let rows=list.map(r=>`
+<tr>
+<td>${r.date}</td>
+<td>${r.time}</td>
+<td>${r.qty}</td>
+<td>${money(r.total)}</td>
+<td>${money(r.cash)}</td>
+<td>${money(r.online)}</td>
+<td>${money(r.credit)}</td>
+</tr>
+`).join("");
+
+let w=window.open("","_blank");
+
+if(!w){
+alert("Allow Popups in Chrome");
+return;
+}
+
+w.document.write(`
+<html>
+<head><meta charset="UTF-8">
+<title>Shop Report</title>
+</head>
+<body>
+<h1>ARSLAN SHOP HISAB</h1>
+<h2>${date}</h2>
+<table border="1" cellpadding="10" width="100%">
+<tr>
+<th>Date</th><th>Time</th><th>Pieces</th>
+<th>Total</th><th>Cash</th>
+<th>Online</th><th>Udhar</th>
+</tr>
+${rows}
+</table>
+<script>
+window.onload=()=>window.print();
+<\/script>
+</body>
+</html>
+`);
+w.document.close();
+}
+
+// Backup
+function backup(){
+let blob=new Blob(
+[JSON.stringify(records,null,2)],
+{type:"application/json"}
+);
+
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="ARSLAN-SHOP-BACKUP.json";
+a.click();
+}
+
+render();
+</script>
+
+</body>
+</html>
