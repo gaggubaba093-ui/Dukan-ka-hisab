@@ -1,0 +1,865 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#070b16">
+<title>ARSLAN SHOP HISAB</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#070b16;color:white;
+ font-family:Arial,sans-serif
+}
+header{
+ background:#111827;text-align:center;
+ padding:24px 12px;border-bottom:1px solid #334155
+}
+header h1{font-size:27px;margin:0 0 8px}
+header p{color:#cbd5e1;margin:0}
+main{max-width:850px;margin:auto;padding:12px}
+.card{
+ background:#151c2c;padding:17px;margin:14px 0;
+ border-radius:17px;border:1px solid #30394b
+}
+h2{color:#60a5fa;font-size:20px}
+.stats{
+ display:grid;grid-template-columns:repeat(2,1fr);
+ gap:9px
+}
+.stat{background:#202c40;padding:13px;border-radius:12px}
+.stat small{color:#cbd5e1}
+.stat b{
+ display:block;color:#4ade80;font-size:21px;margin-top:8px
+}
+label{display:block;color:#cbd5e1;font-size:14px;margin-top:6px}
+input,select{
+ width:100%;padding:13px;margin:7px 0 12px;
+ background:#252f42;color:white;
+ border:1px solid #475569;border-radius:9px;font-size:16px
+}
+button{
+ width:100%;padding:14px;margin:5px 0;
+ border:0;border-radius:10px;
+ background:#2563eb;color:white;
+ font-size:15px;font-weight:bold
+}
+.voice{background:#16a34a;font-size:17px}
+.stop{background:#dc2626}
+.secondary{background:#475569}
+.entry{
+ background:#202c40;padding:13px;margin:9px 0;
+ border-radius:11px;border:1px solid #38465c
+}
+.entry h3{color:#93c5fd;margin-top:0}
+.status{
+ background:#202c40;padding:11px;
+ border-radius:9px;color:#4ade80;line-height:1.5
+}
+.muted{color:#b8c3d5;font-size:13px}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{
+ background:#25344c;border-radius:20px;
+ padding:7px 10px;font-size:12px
+}
+.historyday{border-bottom:1px solid #334155;padding:12px 0}
+@media(min-width:650px){
+ .stats{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🧾 ARSLAN SHOP HISAB</h1>
+<p>Voice Accounting • Yearly History • Daily Records</p>
+</header>
+
+<main>
+
+<!-- DASHBOARD -->
+<section class="card">
+<h2>📊 आज का हिसाब</h2>
+<p class="muted" id="todayLabel"></p>
+
+<div class="stats">
+<div class="stat">कुल बिक्री<b id="todaySales">₹0</b></div>
+<div class="stat">बिके पीस<b id="todayPieces">0</b></div>
+<div class="stat">खराब पीस<b id="todayBad">0</b></div>
+<div class="stat">कैश<b id="todayCash">₹0</b></div>
+<div class="stat">ऑनलाइन<b id="todayOnline">₹0</b></div>
+<div class="stat">उधार<b id="todayCredit">₹0</b></div>
+<div class="stat">कुल कलेक्शन<b id="todayCollection">₹0</b></div>
+<div class="stat">कुल एंट्री<b id="todayCount">0</b></div>
+<div class="stat">इस साल की बिक्री<b id="yearSales">₹0</b></div>
+</div>
+</section>
+
+<!-- VOICE -->
+<section class="card">
+<h2>🎙️ बोलकर हिसाब जोड़ें</h2>
+
+<button class="voice" id="startVoice">
+🎙️ START RECORDING
+</button>
+
+<button class="stop" id="stopVoice">
+STOP RECORDING
+</button>
+
+<p class="status" id="voiceStatus">
+उदाहरण: दो टीशर्ट कैश, एक पैंट ऑनलाइन,
+तीन बरमूडा उधार, एक टीशर्ट खराब।
+</p>
+
+<p class="muted">
+वॉइस के लिए Chrome और Microphone Permission जरूरी है।
+</p>
+</section>
+
+<!-- ADD RECORD -->
+<section class="card">
+<h2>✍️ नया बिक्री रिकॉर्ड</h2>
+
+<label>कपड़े का प्रकार</label>
+<select id="product">
+<option value="T-Shirt">T-Shirt / टीशर्ट</option>
+<option value="Pant">Pant / पैंट</option>
+<option value="Bermuda">Bermuda / बरमूडा</option>
+<option value="Other">Other / अन्य</option>
+</select>
+
+<label>रिकॉर्ड का प्रकार</label>
+<select id="entryType">
+<option value="sale">बिक्री</option>
+<option value="bad">खराब / बेकार पीस</option>
+</select>
+
+<label>कितने पीस?</label>
+<input id="qty" type="number" min="1" value="1">
+
+<label>एक पीस की कीमत ₹</label>
+<input id="price" type="number" min="0" value="150">
+
+<label>पेमेंट का तरीका</label>
+<select id="payment">
+<option value="cash">Cash / नकद</option>
+<option value="online">Online / UPI</option>
+<option value="credit">Udhar / उधार</option>
+</select>
+
+<label>ग्राहक का नाम</label>
+<input id="note" placeholder="Customer Name">
+
+<button id="saveRecord">💾 SAVE RECORD</button>
+
+<p class="status" id="saveStatus">
+Automatic Save System ON
+</p>
+</section>
+
+<!-- DAILY HISTORY -->
+<section class="card">
+<h2>📅 तारीख के हिसाब से हिस्ट्री</h2>
+
+<label>कोई भी तारीख चुनें</label>
+<input type="date" id="filterDate">
+
+<button id="showDate">SHOW HISTORY</button>
+
+<div id="dateSummary"></div>
+<div id="dateRecords"></div>
+
+<button class="secondary" id="datePdf">
+⬇️ इस तारीख की PDF
+</button>
+</section>
+
+<!-- YEAR HISTORY -->
+<section class="card">
+<h2>📚 पूरे साल की हिस्ट्री</h2>
+
+<label>साल चुनें</label>
+<select id="yearFilter"></select>
+
+<div id="yearSummary"></div>
+<div id="yearHistory"></div>
+
+<button class="secondary" id="yearPdf">
+⬇️ पूरे साल की PDF
+</button>
+</section>
+
+<!-- BACKUP -->
+<section class="card">
+<h2>💾 DATA BACKUP</h2>
+
+<p class="muted">
+डेटा IndexedDB में सेव होगा। मोबाइल या ब्राउज़र का डेटा साफ करने से पहले बैकअप रखें।
+</p>
+
+<button class="secondary" id="backupBtn">
+DOWNLOAD FULL BACKUP
+</button>
+
+<label>बैकअप फाइल चुनें</label>
+<input type="file" id="restoreFile" accept=".json">
+
+<button class="secondary" id="restoreBtn">
+RESTORE BACKUP
+</button>
+</section>
+
+</main>
+
+<script>
+"use strict";
+
+const DB_NAME="ArslanShopHisabDB";
+const STORE="records";
+const VERSION=1;
+
+const $=id=>document.getElementById(id);
+
+let db;
+let records=[];
+let recognition=null;
+let defaultPrice=150;
+
+function today(){
+ const d=new Date();
+ return d.getFullYear()+"-"+
+ String(d.getMonth()+1).padStart(2,"0")+"-"+
+ String(d.getDate()).padStart(2,"0");
+}
+
+function money(n){
+ return "₹"+Number(n||0).toLocaleString("en-IN");
+}
+
+function escapeHtml(s){
+ return String(s??"").replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",
+ '"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+// INDEXED DB
+function openDB(){
+ return new Promise((resolve,reject)=>{
+  const request=indexedDB.open(DB_NAME,VERSION);
+
+  request.onupgradeneeded=()=>{
+   const database=request.result;
+
+   if(!database.objectStoreNames.contains(STORE)){
+    database.createObjectStore(STORE,{keyPath:"id"});
+   }
+  };
+
+  request.onsuccess=()=>resolve(request.result);
+  request.onerror=()=>reject(request.error);
+ });
+}
+
+function transactionDone(tx){
+ return new Promise((resolve,reject)=>{
+  tx.oncomplete=()=>resolve();
+  tx.onerror=()=>reject(tx.error);
+  tx.onabort=()=>reject(tx.error);
+ });
+}
+
+async function getAllRecords(){
+ return new Promise((resolve,reject)=>{
+  const request=db.transaction(STORE,"readonly")
+  .objectStore(STORE).getAll();
+
+  request.onsuccess=()=>resolve(request.result||[]);
+  request.onerror=()=>reject(request.error);
+ });
+}
+
+async function putRecord(record){
+ const tx=db.transaction(STORE,"readwrite");
+ tx.objectStore(STORE).put(record);
+ await transactionDone(tx);
+}
+
+// OLD DATA MIGRATION
+async function migrateOldData(){
+
+ const marker="ARSLAN_IDB_MIGRATED_V1";
+
+ if(localStorage.getItem(marker))return;
+
+ const keys=[
+  "ARSLAN_SHOP_DATA",
+  "MY_SHOP_ALL_DAILY_DATA",
+  "shop_voice_records"
+ ];
+
+ const oldRecords=[];
+
+ for(const key of keys){
+  try{
+   const raw=localStorage.getItem(key);
+   if(!raw)continue;
+
+   const data=JSON.parse(raw);
+   const list=Array.isArray(data)?data:
+   (Array.isArray(data.records)?data.records:[]);
+
+   list.forEach((r,i)=>{
+    if(!r||!r.date)return;
+
+    oldRecords.push({
+     ...r,
+     id:String(r.id||"old_"+key+"_"+i),
+     qty:Number(r.qty)||1,
+     price:Number(r.price)||150,
+     type:r.type==="bad"?"bad":"sale",
+     total:Number(r.total)||0,
+     cash:Number(r.cash)||0,
+     online:Number(r.online)||0,
+     credit:Number(r.credit)||0
+    });
+   });
+
+  }catch(e){}
+ }
+
+ if(oldRecords.length){
+  const tx=db.transaction(STORE,"readwrite");
+  const store=tx.objectStore(STORE);
+
+  oldRecords.forEach(r=>store.put(r));
+
+  await transactionDone(tx);
+ }
+
+ localStorage.setItem(marker,"yes");
+}
+
+async function refreshData(){
+ records=await getAllRecords();
+
+ records.sort((a,b)=>
+  (b.date||"").localeCompare(a.date||"")||
+  (b.time||"").localeCompare(a.time||"")
+ );
+
+ renderAll();
+}
+
+// TOTAL CALCULATION
+function totals(list){
+
+ const t={
+  sales:0,pieces:0,bad:0,
+  cash:0,online:0,credit:0,
+  count:0,products:{}
+ };
+
+ list.forEach(r=>{
+  t.count++;
+
+  if(r.type==="bad"){
+   t.bad+=Number(r.qty)||0;
+  }else{
+   t.sales+=Number(r.total)||0;
+   t.pieces+=Number(r.qty)||0;
+   t.cash+=Number(r.cash)||0;
+   t.online+=Number(r.online)||0;
+   t.credit+=Number(r.credit)||0;
+
+   const p=r.product||"Other";
+   t.products[p]=(t.products[p]||0)+(Number(r.qty)||0);
+  }
+ });
+
+ return t;
+}
+
+// DASHBOARD
+function renderDashboard(){
+
+ const list=records.filter(r=>r.date===today());
+ const t=totals(list);
+
+ $("todayLabel").textContent="आज की तारीख: "+today();
+
+ $("todaySales").textContent=money(t.sales);
+ $("todayPieces").textContent=t.pieces;
+ $("todayBad").textContent=t.bad;
+ $("todayCash").textContent=money(t.cash);
+ $("todayOnline").textContent=money(t.online);
+ $("todayCredit").textContent=money(t.credit);
+ $("todayCollection").textContent=money(t.cash+t.online);
+ $("todayCount").textContent=t.count;
+
+ const year=today().slice(0,4);
+
+ const yearly=totals(
+  records.filter(r=>String(r.date).startsWith(year))
+ );
+
+ $("yearSales").textContent=money(yearly.sales);
+}
+
+// SELECTED DATE HISTORY
+function renderDate(){
+
+ const date=$("filterDate").value||today();
+
+ const list=records.filter(r=>r.date===date);
+ const t=totals(list);
+
+ $("dateSummary").innerHTML=`
+ <div class="entry">
+ <h3>📅 ${date}</h3>
+ <div class="pills">
+ <span class="pill">बिक्री ${money(t.sales)}</span>
+ <span class="pill">पीस ${t.pieces}</span>
+ <span class="pill">खराब ${t.bad}</span>
+ </div>
+ <p>कैश: ${money(t.cash)}</p>
+ <p>ऑनलाइन: ${money(t.online)}</p>
+ <p>उधार: ${money(t.credit)}</p>
+ <p>टीशर्ट: ${t.products["T-Shirt"]||0}</p>
+ <p>पैंट: ${t.products.Pant||0}</p>
+ <p>बरमूडा: ${t.products.Bermuda||0}</p>
+ </div>`;
+
+ $("dateRecords").innerHTML=list.length?
+ list.map(r=>`
+ <div class="entry">
+ <h3>${escapeHtml(r.product)} — ${r.type==="bad"?"खराब पीस":"बिक्री"}</h3>
+ <p>${r.qty} पीस • ${money(r.total)}</p>
+ <p>${escapeHtml(r.date)} • ${escapeHtml(r.time)}</p>
+ <p>पेमेंट: ${escapeHtml(r.payment)}</p>
+ <p class="muted">${escapeHtml(r.note||"")}</p>
+ </div>
+ `).join("")
+ :"<p class='muted'>इस तारीख का कोई रिकॉर्ड नहीं है।</p>";
+}
+
+// YEAR HISTORY
+function renderYears(){
+
+ const years=[
+  ...new Set(records.map(r=>String(r.date).slice(0,4)))
+ ].filter(Boolean).sort().reverse();
+
+ const current=today().slice(0,4);
+
+ if(!years.includes(current))years.unshift(current);
+
+ const selected=$("yearFilter").value||current;
+
+ $("yearFilter").innerHTML=years.map(y=>
+  `<option value="${y}">${y}</option>`
+ ).join("");
+
+ $("yearFilter").value=years.includes(selected)?selected:current;
+
+ renderYearHistory();
+}
+
+function renderYearHistory(){
+
+ const year=$("yearFilter").value||today().slice(0,4);
+
+ const list=records.filter(r=>
+  String(r.date).startsWith(year)
+ );
+
+ const t=totals(list);
+
+ $("yearSummary").innerHTML=`
+ <div class="entry">
+ <h3>${year} का पूरा हिसाब</h3>
+ <p>कुल बिक्री: ${money(t.sales)}</p>
+ <p>बिके पीस: ${t.pieces}</p>
+ <p>खराब पीस: ${t.bad}</p>
+ <p>कैश: ${money(t.cash)}</p>
+ <p>ऑनलाइन: ${money(t.online)}</p>
+ <p>उधार: ${money(t.credit)}</p>
+ </div>`;
+
+ const dates=[
+  ...new Set(list.map(r=>r.date))
+ ].sort().reverse();
+
+ $("yearHistory").innerHTML=dates.length?
+ dates.map(date=>{
+  const day=list.filter(r=>r.date===date);
+  const d=totals(day);
+
+  return `
+  <div class="historyday">
+  <b>📅 ${date}</b>
+  <p class="muted">
+  बिक्री ${money(d.sales)} • पीस ${d.pieces}
+  </p>
+  <p class="muted">
+  कैश ${money(d.cash)} • ऑनलाइन ${money(d.online)}
+  • उधार ${money(d.credit)}
+  </p>
+  <button class="secondary"
+  onclick="chooseDate('${date}')">
+  VIEW HISTORY
+  </button>
+  </div>`;
+ }).join("")
+ :"<p class='muted'>अभी कोई रिकॉर्ड नहीं है।</p>";
+}
+
+function renderAll(){
+ renderDashboard();
+ renderDate();
+ renderYears();
+}
+
+function chooseDate(date){
+ $("filterDate").value=date;
+ renderDate();
+ $("dateSummary").scrollIntoView({behavior:"smooth"});
+}
+
+// ADD RECORD
+async function addRecord(data){
+
+ const qty=Number(data.qty);
+ const price=Number(data.price);
+
+ if(!Number.isInteger(qty)||qty<1||
+ !Number.isFinite(price)||price<0){
+  alert("सही पीस और कीमत डालें।");
+  return;
+ }
+
+ const total=data.type==="sale"?qty*price:0;
+
+ const record={
+  id:"r_"+Date.now()+"_"+Math.random().toString(36).slice(2),
+  date:today(),
+  time:new Date().toLocaleTimeString("hi-IN"),
+  qty,price,
+  product:data.product,
+  type:data.type,
+  payment:data.payment,
+  note:data.note||"",
+  total,
+  cash:data.payment==="cash"?total:0,
+  online:data.payment==="online"?total:0,
+  credit:data.payment==="credit"?total:0
+ };
+
+ try{
+  await putRecord(record);
+  await refreshData();
+
+  $("saveStatus").textContent=
+  "✅ रिकॉर्ड सेव हो गया। Refresh करने पर भी रहेगा।";
+
+  $("voiceStatus").textContent=
+  "✅ सेव हुआ: "+record.product+" "+qty+" पीस";
+
+  $("note").value="";
+
+ }catch(error){
+  alert("डेटा सेव नहीं हुआ: "+error.message);
+ }
+}
+
+// MANUAL SAVE
+$("saveRecord").onclick=()=>{
+ addRecord({
+  qty:$("qty").value,
+  price:$("price").value,
+  product:$("product").value,
+  type:$("entryType").value,
+  payment:$("payment").value,
+  note:$("note").value
+ });
+};
+
+// VOICE
+const Speech=
+ window.SpeechRecognition||
+ window.webkitSpeechRecognition;
+
+function processVoice(text){
+
+ const t=text.toLowerCase();
+
+ const nums={
+  "एक":1,"वन":1,"दो":2,"टू":2,
+  "तीन":3,"थ्री":3,"चार":4,
+  "पांच":5,"पाँच":5,"छह":6,
+  "सात":7,"आठ":8,"नौ":9,"दस":10,
+  "ग्यारह":11,"बारह":12,"पंद्रह":15,
+  "बीस":20
+ };
+
+ let qty=1;
+ const digit=t.match(/\d+/);
+
+ if(digit)qty=Number(digit[0]);
+ else{
+  for(const [word,num] of Object.entries(nums)){
+   if(t.includes(word)){
+    qty=num;
+    break;
+   }
+  }
+ }
+
+ let product="Other";
+
+ if(/टी.?शर्ट|टीशर्ट|t.?shirt/.test(t))
+ product="T-Shirt";
+
+ else if(/पैंट|पेंट|pant/.test(t))
+ product="Pant";
+
+ else if(/बरमूडा|bermuda/.test(t))
+ product="Bermuda";
+
+ let type=/खराब|बेकार|डैमेज|damage|waste/.test(t)
+ ?"bad":"sale";
+
+ let payment="cash";
+
+ if(/उधार|बाकी|क्रेडिट/.test(t))
+ payment="credit";
+
+ else if(/ऑनलाइन|यूपीआई|upi|online|फोनपे/.test(t))
+ payment="online";
+
+ let price=defaultPrice;
+
+ const custom=t.match(/(\d+)\s*(रुपये|रुपया|रु)/);
+ if(custom)price=Number(custom[1]);
+
+ addRecord({
+  qty,price,product,type,payment,
+  note:"Voice Entry"
+ });
+}
+
+$("startVoice").onclick=()=>{
+
+ if(!Speech){
+  alert("Android Chrome में खोलें और Microphone Permission दें।");
+  return;
+ }
+
+ recognition=new Speech();
+ recognition.lang="hi-IN";
+ recognition.continuous=false;
+
+ recognition.onstart=()=>{
+  $("voiceStatus").textContent="🎙️ सुन रहा हूँ...";
+ };
+
+ recognition.onresult=e=>{
+  const text=e.results[0][0].transcript;
+  $("voiceStatus").textContent="आपने कहा: "+text;
+  processVoice(text);
+ };
+
+ recognition.onerror=e=>{
+  $("voiceStatus").textContent="Voice Error: "+e.error;
+ };
+
+ try{recognition.start();}
+ catch(e){$("voiceStatus").textContent="माइक पहले से चालू है।";}
+};
+
+$("stopVoice").onclick=()=>{
+ if(recognition){
+  try{recognition.stop();}
+  catch(e){}
+ }
+};
+
+// HISTORY BUTTONS
+$("showDate").onclick=renderDate;
+$("filterDate").onchange=renderDate;
+$("yearFilter").onchange=renderYearHistory;
+
+// PDF
+function makeReport(list,title){
+
+ const t=totals(list);
+
+ const rows=list.map(r=>`
+ <tr>
+ <td>${escapeHtml(r.date)}</td>
+ <td>${escapeHtml(r.time)}</td>
+ <td>${escapeHtml(r.product)}</td>
+ <td>${r.type==="bad"?"खराब":"बिक्री"}</td>
+ <td>${r.qty}</td>
+ <td>${money(r.total)}</td>
+ <td>${money(r.cash)}</td>
+ <td>${money(r.online)}</td>
+ <td>${money(r.credit)}</td>
+ </tr>
+ `).join("");
+
+ const w=window.open("","_blank");
+
+ if(!w){
+  alert("Chrome में Pop-up की अनुमति दें।");
+  return;
+ }
+
+ w.document.write(`
+ <html>
+ <head>
+ <meta charset="UTF-8">
+ <title>ARSLAN SHOP REPORT</title>
+ <style>
+ body{font-family:Arial;padding:18px}
+ table{border-collapse:collapse;width:100%;font-size:12px}
+ td,th{border:1px solid #aaa;padding:6px}
+ th{background:#eee}
+ </style>
+ </head>
+ <body>
+ <h1>ARSLAN SHOP HISAB</h1>
+ <h2>${title}</h2>
+ <p>बिक्री: ${money(t.sales)}</p>
+ <p>पीस: ${t.pieces} | खराब: ${t.bad}</p>
+ <p>कैश: ${money(t.cash)}</p>
+ <p>ऑनलाइन: ${money(t.online)}</p>
+ <p>उधार: ${money(t.credit)}</p>
+ <table>
+ <tr>
+ <th>तारीख</th><th>समय</th><th>प्रोडक्ट</th>
+ <th>प्रकार</th><th>पीस</th><th>रकम</th>
+ <th>कैश</th><th>ऑनलाइन</th><th>उधार</th>
+ </tr>
+ ${rows}
+ </table>
+ <script>
+ window.onload=()=>window.print();
+ <\/script>
+ </body>
+ </html>
+ `);
+
+ w.document.close();
+}
+
+$("datePdf").onclick=()=>{
+ const d=$("filterDate").value||today();
+ makeReport(records.filter(r=>r.date===d),d+" की रिपोर्ट");
+};
+
+$("yearPdf").onclick=()=>{
+ const y=$("yearFilter").value;
+ makeReport(
+  records.filter(r=>String(r.date).startsWith(y)),
+  y+" की पूरी रिपोर्ट"
+ );
+};
+
+// BACKUP
+$("backupBtn").onclick=()=>{
+
+ const data={
+  records:records,
+  defaultPrice:defaultPrice,
+  exportedAt:new Date().toISOString()
+ };
+
+ const blob=new Blob(
+  [JSON.stringify(data,null,2)],
+  {type:"application/json"}
+ );
+
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+
+ a.href=url;
+ a.download="ARSLAN-SHOP-BACKUP-"+today()+".json";
+ a.click();
+
+ URL.revokeObjectURL(url);
+};
+
+// RESTORE - MERGE WITHOUT OVERWRITING
+$("restoreBtn").onclick=()=>{
+
+ const file=$("restoreFile").files[0];
+
+ if(!file){
+  alert("पहले बैकअप फाइल चुनें।");
+  return;
+ }
+
+ const reader=new FileReader();
+
+ reader.onload=async()=>{
+
+  try{
+   const data=JSON.parse(reader.result);
+
+   if(!Array.isArray(data.records))
+   throw new Error("Invalid backup");
+
+   const existing=new Set(records.map(r=>String(r.id)));
+
+   for(const r of data.records){
+    if(r&&r.id&&!existing.has(String(r.id))){
+     await putRecord(r);
+     existing.add(String(r.id));
+    }
+   }
+
+   await refreshData();
+   alert("बैकअप के रिकॉर्ड सफलतापूर्वक जोड़े गए।");
+
+  }catch(e){
+   alert("बैकअप फाइल सही नहीं है।");
+  }
+ };
+
+ reader.readAsText(file);
+};
+
+// START DATABASE
+async function init(){
+
+ try{
+  if(!window.indexedDB)
+  throw new Error("IndexedDB उपलब्ध नहीं है।");
+
+  db=await openDB();
+
+  await migrateOldData();
+  await refreshData();
+
+  $("saveStatus").textContent=
+  "✅ IndexedDB चालू है। Automatic Save ON.";
+
+ }catch(e){
+
+  $("saveStatus").textContent=
+  "❌ Database Error: "+e.message;
+
+  alert("डेटाबेस शुरू नहीं हुआ। Chrome में वेबसाइट खोलें।");
+ }
+}
+
+init();
+
+</script>
+</body>
+</html>
